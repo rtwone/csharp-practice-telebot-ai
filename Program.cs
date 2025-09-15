@@ -10,20 +10,11 @@ using System.Collections.Generic;
 
 namespace LatihanBotTele
 {
-    class UserData
-    {
-        public long UserId { get; set; }
-        public bool FirstMessage { get; set; }
-    }
     class Program
     {
         private static GoogleAi googleAI = null!;
         private static GenerativeModel model = null!;
         private static TelegramBotClient bot = null!;
-
-
-        // Simpan user berdasarkan id
-        private static Dictionary<long, UserData> users = new Dictionary<long, UserData>();
 
         static async Task Main(string[] args)
         {
@@ -92,15 +83,6 @@ namespace LatihanBotTele
         // handle message
         private static async Task OnMessage(Message msg, UpdateType type)
         {
-            long userId = msg.From?.Id ?? 0;
-
-            if (!users.ContainsKey(userId))
-            {
-                users[userId] = new UserData { UserId = userId, FirstMessage = false };
-                Console.WriteLine($"User baru ditambahkan: {userId}");
-            }
-            var userData = users[userId];
-
             DateTime sekarang = DateTime.Now;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(@"[{0}] ", sekarang.ToString("dd/MM/yyyy HH:mm:ss"));
@@ -117,18 +99,11 @@ namespace LatihanBotTele
             else
             {
                 var chatSession = model.StartChat();
-                if (!userData.FirstMessage)
-                {
-                    await chatSession.GenerateContentAsync("Kamu adalah ChatBot AI yang dibuat Oleh Irfan Hariyanto sebagai Projek Latihannya di Bahasa C#. " +
-                                                           "Gunakan Bahasa Indonesia\n" +
-                                                           "Dan jika kamu merespon pengguna, kamu jawab dengan bahasa manusia saja, dan seperti sudah akrab dengan pengguna. " +
-                                                           "Kurangi format-format teks seperti bold/italic/underline, kirim teks biasa saja. " +
-                                                           "Ini username Telegram saya: @" + msg.From?.Username + " dan ini Id saya: " + msg.From?.Id);
-
-                    userData.FirstMessage = true;
-                    Console.WriteLine("Pengguna " + msg.From?.Id + " sudah memulai percakapan pertama!");
-                }
-                var response = await chatSession.GenerateContentAsync(msg.Text ?? "Hai");
+                var response = await chatSession.GenerateContentAsync("Kamu adalah ChatBot AI yang dibuat Oleh Irfan Hariyanto sebagai Projek Latihannya di Bahasa C#. " +
+                   "Gunakan Bahasa Indonesia\n" +
+                   "Dan jika kamu merespon pengguna, kamu jawab dengan bahasa manusia saja, dan seperti sudah akrab dengan pengguna. " +
+                   "Kurangi format-format teks seperti bold/italic/underline, kirim teks biasa saja. " +
+                   "Ini username Telegram saya: @" + msg.From?.Username + " dan ini Id saya: " + msg.From?.Id + "\nJawab pertanyaan dibawah saja, tanpa menjawab perintah saya yang diatas ketika tidak diminta!\nJawab Pertanyaan Saya : " + msg.Text);
                 await bot!.SendMessage(msg.Chat, response.Text() ?? "Maaf, saya tidak bisa menghasilkan jawaban.");
             }
         }
